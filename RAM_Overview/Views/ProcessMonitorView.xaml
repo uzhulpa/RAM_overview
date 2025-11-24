@@ -1,0 +1,84 @@
+﻿<UserControl x:Class="RAM_Overview.Views.ProcessMonitorView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RAM_Overview.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="3*"/>
+            <ColumnDefinition Width="2*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- заголовок -->
+        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
+            <TextBlock Text="монитор процессов"
+                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </Grid>
+
+        <!-- общая таблица -->
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+            <DataGrid ItemsSource="{Binding ProcessModels}"
+                      SelectedItem="{Binding SelectedProcessModel}"
+                      AutoGenerateColumns="False"
+                      IsReadOnly="True">
+                <DataGrid.Columns>
+                    <DataGridTemplateColumn Header="Icon">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Source="{Binding Icon}"
+                                       Width="16" Height="16"
+                                       ToolTip="{Binding Name}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}"/>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
+                    <DataGridTextColumn Header="Working set" Binding="{Binding WorkingSetBytes}"/>
+                    <DataGridTextColumn Header="Running time" Binding="{Binding RunningTime, StringFormat='{}{0:hh\\:mm\\:ss}'}"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Grid>
+        
+        <!-- выбранный процесс память -->
+        <Grid Grid.Row="2" Grid.Column="0">
+            <Border>
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="{Binding SelectedProcessModel.Id, StringFormat=ID: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.Name, StringFormat=Name: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.WorkingSetBytes, StringFormat=WorkingSet: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.PeakWorkingSetBytes, StringFormat=PeakWorkingSet: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.PrivateMemoryBytes, StringFormat=PrivateMemory: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.VirtualMemoryBytes, StringFormat=VirtualMemory: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.PagedMemoryBytes, StringFormat=PagedMemory: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.NonpagedMemoryBytes, StringFormat=NonpagedMemory: {0}}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+        
+        <!-- выбранный процесс свойства -->
+        <Grid Grid.Row="2" Grid.Column="1">
+            <Border>
+                <StackPanel Orientation="Vertical">
+                    <TextBlock Text="{Binding SelectedProcessModel.Id, StringFormat=ID: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.Name, StringFormat=Name: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.RunningTime, StringFormat=RunningTime: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.StartTime, StringFormat=StartTime: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.ProcessFileName, StringFormat=ProcessFileName: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.BasePriority, StringFormat=BasePriority: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.ThreadsCount, StringFormat=ThreadsCount: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.HandleCount, StringFormat=HandleCount: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.ProcessOwner, StringFormat=ProcessOwner: {0}}"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.CertificateIssuer, StringFormat=CertificateIssuer: {0}}"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

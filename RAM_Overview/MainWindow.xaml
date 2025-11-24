@@ -1,0 +1,48 @@
+﻿<Window x:Class="RAM_Overview.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RAM_Overview"
+        xmlns:vm="clr-namespace:RAM_Overview.ViewModels"
+        xmlns:views="clr-namespace:RAM_Overview.Views"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="800" Width="1200">
+
+    <Window.Resources>
+        <!-- DataTemplate для PerformanceViewModel -->
+        <DataTemplate DataType="{x:Type vm:PerformanceViewModel}">
+            <views:PerformanceView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProcessMonitorViewModel}">
+            <views:ProcessMonitorView/>
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+            <views:SettingsView/>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- сайдбар -->
+        <Grid Grid.Column="0">
+            <StackPanel Orientation="Vertical">
+                <Button Content="Главная"
+                        Command="{Binding ShowPerformanceCommand}"/>
+                <Button Content="Процессы"
+                        Command="{Binding ShowProcessMonitorCommand}"/>
+                <Button Content="Настройки"
+                        Command="{Binding ShowSettingsCommand}"/>
+            </StackPanel>
+        </Grid>
+
+        <!-- содержимое выбранной вкладки -->
+        <Grid Grid.Column="1">
+            <ContentControl Content="{Binding CurrentViewModel}"/>
+        </Grid>
+    </Grid>
+</Window>

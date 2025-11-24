@@ -1,0 +1,157 @@
+﻿<!-- PerformanceView.xaml -->
+<UserControl x:Class="RAM_Overview.Views.PerformanceView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RAM_Overview.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="64"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- заголовок -->
+        <Grid Grid.Row="0">
+            <TextBlock Text="Главная"
+                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
+        </Grid>
+
+        <Grid Grid.Row="1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition Width="3*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- левый блок -->
+                <Grid Grid.Column="0">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="auto"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- шкала использования -->
+                        <Grid Grid.Row="0">
+                            <Border BorderThickness="1" BorderBrush="Black">
+                                <TextBlock Text="Шкала использования"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- инфа распределение -->
+                        <Grid Grid.Row="1">
+                            <Border BorderThickness="1" BorderBrush="Black">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Распределение оперативной памяти"/>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition/>
+                                            <ColumnDefinition/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Grid Grid.Column="0">
+                                            <StackPanel Orientation="Vertical">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Используется"/>
+                                                    <TextBlock Text="{Binding MemoryAllocationInfo.UsedMemoryGB}"/>
+                                                </StackPanel>
+                                                <Border Padding="10,0,0,0">
+                                                    <StackPanel Orientation="Vertical">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="сжатая"/>
+                                                            <TextBlock Text="{Binding MemoryAllocationInfo.CompressedMemoryMB}"/>
+                                                        </StackPanel>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="выгружаемый пул"/>
+                                                            <TextBlock Text="{Binding MemoryAllocationInfo.PagedPoolMB}"/>
+                                                        </StackPanel>
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="невыгружаемый пул"/>
+                                                            <TextBlock Text="{Binding MemoryAllocationInfo.NonPagedPoolMB}"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Border>
+                                            </StackPanel>
+                                        </Grid>
+                                        <Grid Grid.Column="1">
+                                            <StackPanel Orientation="Vertical">
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Доступно"/>
+                                                    <TextBlock Text="{Binding MemoryAllocationInfo.AvailableMemoryGB}"/>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Выделено"/>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding MemoryAllocationInfo.CommittedMemoryGB}"/>
+                                                        <TextBlock Text="{Binding MemoryAllocationInfo.CommitLimitGB, StringFormat='/{0}'}"/>
+                                                    </StackPanel>
+                                                </StackPanel>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="Кэшировано"/>
+                                                    <TextBlock Text="{Binding MemoryAllocationInfo.CachedMemoryGB}"/>
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Grid>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+
+                        <!-- график -->
+                        <Grid Grid.Row="2">
+                            <Border BorderThickness="1" BorderBrush="Black">
+                                <TextBlock Text="График"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- аппаратная инфа -->
+                        <Grid Grid.Row="3">
+                            <Border BorderThickness="1" BorderBrush="Black">
+                                <StackPanel Orientation="Vertical">
+                                    <TextBlock Text="Аппаратная информация"/>
+                                    <TextBlock Text="{Binding MemoryHardwareInfo.Speed}"/>
+                                    <TextBlock Text="{Binding MemoryHardwareInfo.SlotsInfo}"/>
+                                    <TextBlock Text="{Binding MemoryHardwareInfo.FormFactor}"/>
+                                    <TextBlock Text="{Binding MemoryHardwareInfo.HardwareReservedMB}"/>
+                                    <TextBlock Text="{Binding MemoryHardwareInfo.MemoryType}"/>
+                                    <TextBlock Text="{Binding MemoryHardwareInfo.Timings}"/>
+                                    <TextBlock Text="{Binding MemoryHardwareInfo.Manufacturer}"/>
+                                </StackPanel>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Grid>
+                
+                <!-- правый блок -->
+                <Grid Grid.Column="1">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="3*"/>
+                            <RowDefinition Height="2*"/>
+                        </Grid.RowDefinitions>
+
+                        <!-- диаграмма -->
+                        <Grid Grid.Row="0">
+                            <Border BorderThickness="1" BorderBrush="Black">
+                                <TextBlock Text="Диаграмма"/>
+                            </Border>
+                        </Grid>
+
+                        <!-- процессы в диаграмме -->
+                        <Grid Grid.Row="1">
+                            <Border BorderThickness="1" BorderBrush="Black">
+                                <TextBlock Text="Процессы в диаграмме"/>
+                            </Border>
+                        </Grid>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>
