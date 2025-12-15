@@ -7,7 +7,7 @@
         xmlns:vm="clr-namespace:RAM_Overview.ViewModels"
         xmlns:views="clr-namespace:RAM_Overview.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="800" Width="1200">
+        Title="Распределение оперативной памяти" Height="800" Width="1200">
 
     <Window.Resources>
         <!-- DataTemplate для PerformanceViewModel -->
@@ -20,25 +20,221 @@
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <views:SettingsView/>
         </DataTemplate>
+
+        <Style x:Key="SidebarButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#42474E"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="HorizontalContentAlignment" Value="Left"/>
+            <Setter Property="Padding" Value="24,16"/>
+            <Setter Property="Margin" Value="8,4,0,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" 
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True">
+                            <ContentPresenter x:Name="contentPresenter"
+                                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                                              Content="{TemplateBinding Content}"
+                                              ContentStringFormat="{TemplateBinding ContentStringFormat}"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                              SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
+                                              Margin="{TemplateBinding Padding}"
+                                              RecognizesAccessKey="True"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#F1F5F9"/>
+                                <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="#1A1D21"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#E2E8F0"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#3B82F6"/>
+                                <Setter TargetName="contentPresenter" Property="TextElement.Foreground" Value="#FFFFFF"/>
+                            </DataTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="AppTitleStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#1A1D21"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,0"/>
+        </Style>
+
+        <Style x:Key="SidebarSectionStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Margin" Value="24,24,0,8"/>
+        </Style>
     </Window.Resources>
 
-    <Grid>
+    <Grid Background="#F8F9FA">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="240"/>
+            <ColumnDefinition Width="200"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <!-- сайдбар -->
-        <Grid Grid.Column="0">
-            <StackPanel Orientation="Vertical">
-                <Button Content="Главная"
-                        Command="{Binding ShowPerformanceCommand}"/>
-                <Button Content="Процессы"
-                        Command="{Binding ShowProcessMonitorCommand}"/>
-                <Button Content="Настройки"
-                        Command="{Binding ShowSettingsCommand}"/>
-            </StackPanel>
-        </Grid>
+        <Border Grid.Column="0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="64"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0" 
+                        Background="#FFFFFF" 
+                        BorderBrush="#E1E5E9" 
+                        BorderThickness="0,0,0,1">
+                    <StackPanel Orientation="Horizontal" 
+                                VerticalAlignment="Center" 
+                                Margin="24,0">
+                        <TextBlock Text="Обзор ОЗУ" 
+                                   Style="{StaticResource AppTitleStyle}"/>
+                    </StackPanel>
+                </Border>
+
+                <StackPanel Grid.Row="1" Orientation="Vertical">
+                    <TextBlock Text="Навигация" Style="{StaticResource SidebarSectionStyle}"/>
+
+                    <Button Content="Главная"
+                            Command="{Binding ShowPerformanceCommand}"
+                            Style="{StaticResource SidebarButtonStyle}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" 
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="8"
+                                        SnapsToDevicePixels="True">
+                                    <StackPanel Orientation="Horizontal" 
+                                                VerticalAlignment="Center"
+                                                Margin="24,16">
+                                        <TextBlock x:Name="textBlock"
+                                            Text="{TemplateBinding Content}" 
+                                                   Foreground="{TemplateBinding Foreground}"
+                                                   FontSize="14"
+                                                   FontWeight="Medium"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#F1F5F9"/>
+                                        <Setter TargetName="textBlock" Property="Foreground" Value="#1A1D21"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#E2E8F0"/>
+                                    </Trigger>
+                                    <DataTrigger Binding="{Binding IsPerformanceActive}" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#3B82F6"/>
+                                        <Setter TargetName="textBlock" Property="Foreground" Value="#FFFFFF"/>
+                                    </DataTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <Button Content="Процессы"
+                            Command="{Binding ShowProcessMonitorCommand}"
+                            Style="{StaticResource SidebarButtonStyle}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" 
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="8"
+                SnapsToDevicePixels="True">
+                                    <StackPanel Orientation="Horizontal" 
+                        VerticalAlignment="Center"
+                        Margin="24,16">
+                                        <TextBlock x:Name="textBlock"
+                    Text="{TemplateBinding Content}" 
+                           Foreground="{TemplateBinding Foreground}"
+                           FontSize="14"
+                           FontWeight="Medium"
+                           VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#F1F5F9"/>
+                                        <Setter TargetName="textBlock" Property="Foreground" Value="#1A1D21"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#E2E8F0"/>
+                                    </Trigger>
+                                    <DataTrigger Binding="{Binding IsProcessMonitorActive}" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#3B82F6"/>
+                                        <Setter TargetName="textBlock" Property="Foreground" Value="#FFFFFF"/>
+                                    </DataTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+
+                    <!--
+                    <Button Content="Настройки"
+                            Command="{Binding ShowSettingsCommand}"
+                            Style="{StaticResource SidebarButtonStyle}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="border" 
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="8"
+                SnapsToDevicePixels="True">
+                                    <StackPanel Orientation="Horizontal" 
+                        VerticalAlignment="Center"
+                        Margin="24,16">
+                                        <TextBlock x:Name="textBlock"
+                    Text="{TemplateBinding Content}" 
+                           Foreground="{TemplateBinding Foreground}"
+                           FontSize="14"
+                           FontWeight="Medium"
+                           VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#F1F5F9"/>
+                                        <Setter TargetName="textBlock" Property="Foreground" Value="#1A1D21"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#E2E8F0"/>
+                                    </Trigger>
+                                    <DataTrigger Binding="{Binding IsSettingsActive}" Value="True">
+                                        <Setter TargetName="border" Property="Background" Value="#3B82F6"/>
+                                        <Setter TargetName="textBlock" Property="Foreground" Value="#FFFFFF"/>
+                                    </DataTrigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                    </Button>
+                    -->
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <!-- содержимое выбранной вкладки -->
         <Grid Grid.Column="1">

@@ -1,34 +1,44 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using System.Collections.ObjectModel;
+using RAM_Overview.Services.Converters;
 
 namespace RAM_Overview.Models
 {
-    public partial class MemoryHardwareInfo : ObservableObject
+    public class MemoryHardwareInfo
     {
-        [ObservableProperty] private string _memoryType = "MEMORY TYPE";
+        public string Manufacturer { get; set; } = "нет данных";
+        public string MemoryType { get; set; } = "нет данных";
+        public ulong TotalPhysicalMemoryBytes { get; set; }
+        public ulong HardwareReservedBytes { get; set; }
+        public uint SpeedMTPS { get; set; }
+        public uint SlotsUsed { get; set; }
+        public uint TotalSlots { get; set; }
+        public string FormFactor { get; set; } = "нет данных";
+        public string SerialNumber { get; set; } = "нет данных";
+        public List<MemoryModuleInfo> Modules { get; set; } = new();
 
-        [ObservableProperty] private int _speed;
+        public double TotalPhysicalMemoryGB => TotalPhysicalMemoryBytes / 1024.0 / 1024.0 / 1024.0;
+        public double HardwareReservedMB => Math.Round(HardwareReservedBytes / 1024.0 / 1024.0, MidpointRounding.AwayFromZero);
 
-        [ObservableProperty] private string _timings = "TIMINGS";
+        public string SpeedMTPSString => $"{SpeedMTPS} МТ/с";
+        public string SlotsUsedString => $"{SlotsUsed} из {TotalSlots}";
+        public string TotalPhysicalMemoryString => MemoryUnitConverter.BytesToAutoString(TotalPhysicalMemoryBytes);
+        public string HardwareReservedString => MemoryUnitConverter.BytesToAutoString(HardwareReservedBytes);
 
-        [ObservableProperty] private int _slotsUsed;
+        // 1ст
+        // скорость, использовано гнезд, тип памяти, зарезервировано аппаратно
 
-        [ObservableProperty] private int _slotsTotal;
+        // 2ст
+        // производитель, форм фактор, серийный номер
+    }
 
-        [ObservableProperty] private string _formFactor = "FORM FACTOR";
-
-        [ObservableProperty] private long _hardwareReserved;
-
-        [ObservableProperty] private string _manufacturer = "MANUFACTURER";
-
-        [ObservableProperty] private long _totalPhysicalMemory;
-
-        public string SlotsInfo => $"{SlotsUsed} из {SlotsTotal}";
-        public double HardwareReservedMB => HardwareReserved / 1024.0 / 1024.0;
-        public double TotalPhysicalMemoryGB => TotalPhysicalMemory / 1024.0 / 1024.0 / 1024.0;
-
-        partial void OnSlotsUsedChanged(int value) => OnPropertyChanged(nameof(SlotsInfo));
-        partial void OnSlotsTotalChanged(int value) => OnPropertyChanged(nameof(SlotsInfo));
-        partial void OnHardwareReservedChanged(long value) => OnPropertyChanged(nameof(HardwareReservedMB));
-        partial void OnTotalPhysicalMemoryChanged(long value) => OnPropertyChanged(nameof(TotalPhysicalMemoryGB));
+    public class MemoryModuleInfo
+    {
+        public string Manufacturer { get; set; } = "нет данных";
+        public string SerialNumber { get; set; } = "нет данных";
+        public ulong CapacityBytes { get; set; }
+        public uint SpeedMHz { get; set; }
+        public string MemoryType { get; set; } = "нет данных";
+        public string FormFactor { get; set; } = "нет данных";
     }
 }

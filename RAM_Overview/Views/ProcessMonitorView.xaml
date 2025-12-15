@@ -1,4 +1,5 @@
-﻿<UserControl x:Class="RAM_Overview.Views.ProcessMonitorView"
+﻿<!-- ProcessMonitorView.xaml -->
+<UserControl x:Class="RAM_Overview.Views.ProcessMonitorView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -6,31 +7,143 @@
              xmlns:local="clr-namespace:RAM_Overview.Views"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+
+    <UserControl.Resources>
+        <Style x:Key="ModernCardStyle" TargetType="Border">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#E1E5E9"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="Padding" Value="16"/>
+        </Style>
+
+        <Style x:Key="ModernButtonStyle" TargetType="Button">
+            <Setter Property="Margin" Value="8,0,16,0"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="#42474E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type Button}">
+                        <Border Background="{TemplateBinding Background}" 
+                        BorderBrush="Transparent" 
+                        BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" 
+                                      VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="#1A1D21"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Foreground" Value="#6B7280"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="#888888"/>
+                    <Setter Property="Background" Value="Transparent"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="16"/>
+            <Setter Property="Foreground" Value="#1A1D21"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <Style x:Key="DataTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#42474E"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,4,0,4"/>
+        </Style>
+
+        <Style x:Key="LabelTextStyle" TargetType="TextBlock" BasedOn="{StaticResource DataTextStyle}">
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+
+        <Style x:Key="ProcessHeaderStyle" TargetType="StackPanel">
+            <Setter Property="Orientation" Value="Horizontal"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,0,0,16"/>
+        </Style>
+
+        <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="Margin" Value="8"/>
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True"/>
+            <Setter Property="ScrollViewer.PanningMode" Value="Both"/>
+        </Style>
+
+        <Style x:Key="DataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="Foreground" Value="#42474E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="Margin" Value="0,4,0,4"/>
+            <Setter Property="Padding" Value="0,4,0,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#F8F9FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="64"/>
             <RowDefinition Height="*"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="280"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="3*"/>
-            <ColumnDefinition Width="2*"/>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
         <!-- заголовок -->
-        <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2">
-            <TextBlock Text="монитор процессов"
-                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        </Grid>
+        <Border Grid.Row="0" Grid.ColumnSpan="2" 
+                Background="#FFFFFF" 
+                BorderBrush="#E1E5E9" 
+                BorderThickness="0,0,0,1">
+            <TextBlock Text="Процессы"
+                       VerticalAlignment="Center" 
+                       Margin="8,0,0,0"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#1A1D21"/>
+        </Border>
 
-        <!-- общая таблица -->
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2">
+        <!-- все процессы -->
+        <Border Grid.Row="1" Grid.ColumnSpan="2" Margin="8,8,0,0"
+                Style="{StaticResource ModernCardStyle}">
             <DataGrid ItemsSource="{Binding ProcessModels}"
                       SelectedItem="{Binding SelectedProcessModel}"
-                      AutoGenerateColumns="False"
-                      IsReadOnly="True">
+                      Style="{StaticResource ModernDataGridStyle}"
+                      ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                      CellStyle="{StaticResource DataGridCellStyle}">
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Icon">
+                    <DataGridTemplateColumn Width="40">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Image Source="{Binding Icon}"
@@ -39,46 +152,141 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="ID" Binding="{Binding Id}"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}"/>
-                    <DataGridTextColumn Header="Working set" Binding="{Binding WorkingSetBytes}"/>
-                    <DataGridTextColumn Header="Running time" Binding="{Binding RunningTime, StringFormat='{}{0:hh\\:mm\\:ss}'}"/>
+                    <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                    <DataGridTextColumn Header="Имя" Binding="{Binding Name}" Width="*" MinWidth="200"/>
+                    <DataGridTextColumn Header="Время работы" Binding="{Binding RunningTime, StringFormat='{}{0:hh\\:mm\\:ss}'}" Width="120"/>
+                    <DataGridTextColumn Header="Виртуальная память" Binding="{Binding VirtualMemoryBytes}" Width="140"/>
+                    <DataGridTextColumn Header="Рабочий набор" Binding="{Binding WorkingSetBytes}" Width="140"/>
+
+                    <DataGridTemplateColumn Width="Auto">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Content="Завершить"
+                                        Command="{Binding DataContext.TerminateProcessCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                        CommandParameter="{Binding Id}"
+                                        Style="{StaticResource ModernButtonStyle}"
+                                        Padding="6,0,6,0"
+                                        FontSize="11"
+                                        VerticalAlignment="Top"
+                                        VerticalContentAlignment="Top"
+                                        Height="Auto"
+                                        ToolTip="Завершить процесс"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
                 </DataGrid.Columns>
             </DataGrid>
-        </Grid>
-        
+        </Border>
+
         <!-- выбранный процесс память -->
-        <Grid Grid.Row="2" Grid.Column="0">
-            <Border>
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Text="{Binding SelectedProcessModel.Id, StringFormat=ID: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.Name, StringFormat=Name: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.WorkingSetBytes, StringFormat=WorkingSet: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.PeakWorkingSetBytes, StringFormat=PeakWorkingSet: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.PrivateMemoryBytes, StringFormat=PrivateMemory: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.VirtualMemoryBytes, StringFormat=VirtualMemory: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.PagedMemoryBytes, StringFormat=PagedMemory: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.NonpagedMemoryBytes, StringFormat=NonpagedMemory: {0}}"/>
+        <Border Grid.Row="2" Grid.Column="0" Style="{StaticResource ModernCardStyle}" Margin="8,8,0,8">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Использование оперативной памяти" Style="{StaticResource SectionHeaderStyle}"/>
+                <StackPanel Style="{StaticResource ProcessHeaderStyle}">
+                    <Image Source="{Binding SelectedProcessModel.Icon}"
+                           Width="16" Height="16"
+                           ToolTip="{Binding SelectedProcessModel.Name}"
+                           Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.Name}" FontWeight="SemiBold" Foreground="#1A1D21"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.Id, StringFormat=' (PID: {0})'}" Foreground="#6B7280" Margin="8,0,0,0"/>
                 </StackPanel>
-            </Border>
-        </Grid>
-        
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="4*"/>
+                        <ColumnDefinition Width="3*"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Рабочий набор" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Пик рабочего набора" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Частные байты" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Виртуальная память" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="4" Text="Выгружаемая память" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="5" Text="Невыгружаемая память" Style="{StaticResource LabelTextStyle}"/>
+
+                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding SelectedProcessModel.WorkingSetBytes, StringFormat=' {0} байт'}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding SelectedProcessModel.PeakWorkingSetBytes, StringFormat=' {0} байт'}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding SelectedProcessModel.PrivateMemoryBytes, StringFormat=' {0} байт'}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="3" Text="{Binding SelectedProcessModel.VirtualMemoryBytes, StringFormat=' {0} байт'}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="4" Text="{Binding SelectedProcessModel.PagedMemoryBytes, StringFormat=' {0} байт'}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="5" Text="{Binding SelectedProcessModel.NonpagedMemoryBytes, StringFormat=' {0} байт'}" Style="{StaticResource DataTextStyle}"/>
+
+                    <TextBlock Grid.Column="2" Grid.Row="0" Text="{Binding SelectedProcessModel.WorkingSetString}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="1" Text="{Binding SelectedProcessModel.PeakWorkingSetString}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="2" Text="{Binding SelectedProcessModel.PrivateMemoryString}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="3" Text="{Binding SelectedProcessModel.VirtualMemoryString}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="4" Text="{Binding SelectedProcessModel.PagedMemoryString}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="2" Grid.Row="5" Text="{Binding SelectedProcessModel.NonPagedMemoryString}" Style="{StaticResource DataTextStyle}"/>
+                </Grid>
+            </StackPanel>
+        </Border>
+
         <!-- выбранный процесс свойства -->
-        <Grid Grid.Row="2" Grid.Column="1">
-            <Border>
-                <StackPanel Orientation="Vertical">
-                    <TextBlock Text="{Binding SelectedProcessModel.Id, StringFormat=ID: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.Name, StringFormat=Name: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.RunningTime, StringFormat=RunningTime: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.StartTime, StringFormat=StartTime: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.ProcessFileName, StringFormat=ProcessFileName: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.BasePriority, StringFormat=BasePriority: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.ThreadsCount, StringFormat=ThreadsCount: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.HandleCount, StringFormat=HandleCount: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.ProcessOwner, StringFormat=ProcessOwner: {0}}"/>
-                    <TextBlock Text="{Binding SelectedProcessModel.CertificateIssuer, StringFormat=CertificateIssuer: {0}}"/>
+        <Border Grid.Row="2" Grid.Column="1" Style="{StaticResource ModernCardStyle}" Margin="8,8,8,8">
+            <StackPanel Orientation="Vertical">
+                <TextBlock Text="Свойства процесса" Style="{StaticResource SectionHeaderStyle}"/>
+                <StackPanel Style="{StaticResource ProcessHeaderStyle}">
+                    <Image Source="{Binding SelectedProcessModel.Icon}"
+                           Width="16" Height="16"
+                           ToolTip="{Binding SelectedProcessModel.Name}"
+                           Margin="0,0,8,0"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.Name}" FontWeight="SemiBold" Foreground="#1A1D21"/>
+                    <TextBlock Text="{Binding SelectedProcessModel.Id, StringFormat=' (PID: {0})'}" Foreground="#6B7280" Margin="8,0,0,0"/>
                 </StackPanel>
-            </Border>
-        </Grid>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Время работы" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Время начала работы" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Владелец процесса" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Путь к файлу процесса" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="4" Text="Базовый приоритет" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="5" Text="Количество потоков" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="6" Text="Количество дескрипторов" Style="{StaticResource LabelTextStyle}"/>
+                    <TextBlock Grid.Column="0" Grid.Row="7" Text="Издатель сертификата" Style="{StaticResource LabelTextStyle}"/>
+
+                    <TextBlock Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" Text="{Binding SelectedProcessModel.RunningTime}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="1" Text="{Binding SelectedProcessModel.StartTime}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Text="{Binding SelectedProcessModel.ProcessOwner}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.Row="3" Text="{Binding SelectedProcessModel.ProcessFileName}" Style="{StaticResource DataTextStyle}" TextTrimming="CharacterEllipsis"/>
+                    <TextBlock Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="4" Text="{Binding SelectedProcessModel.BasePriority}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="5" Text="{Binding SelectedProcessModel.ThreadsCount}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="6" Text="{Binding SelectedProcessModel.HandleCount}" Style="{StaticResource DataTextStyle}"/>
+                    <TextBlock Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="7" Text="{Binding SelectedProcessModel.CertificateIssuer}" Style="{StaticResource DataTextStyle}"/>
+
+                    <Button Grid.Column="2" Grid.Row="3"
+                            Content="Открыть" 
+                            Command="{Binding OpenProcessFileLocationCommand}"
+                            Style="{StaticResource ModernButtonStyle}"
+                            Margin="8,0,0,0"
+                            Padding="8,4"
+                            VerticalAlignment="Center"
+                            Height="24"/>
+                </Grid>
+            </StackPanel>
+        </Border>
     </Grid>
 </UserControl>

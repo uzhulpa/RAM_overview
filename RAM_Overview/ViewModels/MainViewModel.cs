@@ -13,6 +13,13 @@ namespace RAM_Overview.ViewModels
 
         [ObservableProperty] private object? _currentViewModel;
 
+        private PerformanceViewModel? _performanceViewModel;
+        private ProcessMonitorViewModel? _processMonitorViewModel;
+
+        [ObservableProperty] private bool _isPerformanceActive;
+        [ObservableProperty] private bool _isProcessMonitorActive;
+        [ObservableProperty] private bool _isSettingsActive;
+
         public MainViewModel(ProcessMonitorService processMonitorService, MemoryHardwareService memoryHardwareService, MemoryAllocationInfoService memoryInfoService)
         {
             _processMonitorService = processMonitorService;
@@ -25,19 +32,33 @@ namespace RAM_Overview.ViewModels
         [RelayCommand]
         private void ShowPerformance()
         {
-            CurrentViewModel = new PerformanceViewModel(_memoryHardwareService, _memoryInfoService);
+            if (_performanceViewModel == null) _performanceViewModel = new PerformanceViewModel(_memoryHardwareService, _memoryInfoService, _processMonitorService);
+            CurrentViewModel = _performanceViewModel;
+
+            IsPerformanceActive = true;
+            IsProcessMonitorActive = false;
+            IsSettingsActive = false;
         }
 
         [RelayCommand]
         private void ShowProcessMonitor()
         {
-            CurrentViewModel = new ProcessMonitorViewModel(_processMonitorService);
+            if (_processMonitorViewModel == null) _processMonitorViewModel = new ProcessMonitorViewModel(_processMonitorService);
+            CurrentViewModel = _processMonitorViewModel;
+
+            IsPerformanceActive = false;
+            IsProcessMonitorActive = true;
+            IsSettingsActive = false;
         }
 
         [RelayCommand]
         private void ShowSettings()
         {
             CurrentViewModel = new SettingsViewModel();
+
+            IsPerformanceActive = false;
+            IsProcessMonitorActive = false;
+            IsSettingsActive = true;
         }
     }
 }

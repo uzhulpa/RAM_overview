@@ -14,11 +14,9 @@ namespace RAM_Overview.Services
 
         private readonly Timer _timer;
 
-        private int _id = 0;
-
         public ProcessMonitorService()
         {
-            _timer = new Timer(UpdateData, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            _timer = new Timer(UpdateData, null, TimeSpan.Zero, TimeSpan.FromSeconds(1.5));
         }
 
         private void UpdateData(object? state)
@@ -31,39 +29,49 @@ namespace RAM_Overview.Services
                 {
                     Id = proc.Id,
                     Name = proc.ProcessName,
-                    WorkingSetBytes = proc.WorkingSet64, // Обычно безопасно
-                    PrivateMemoryBytes = proc.PrivateMemorySize64, // Обычно безопасно
-                    PeakWorkingSetBytes = proc.PeakWorkingSet64, // Обычно безопасно
-                    VirtualMemoryBytes = proc.VirtualMemorySize64, // Обычно безопасно
-                    PagedMemoryBytes = proc.PagedMemorySize64, // Обычно безопасно
-                    NonpagedMemoryBytes = proc.NonpagedSystemMemorySize64, // Обычно безопасно
-                    BasePriority = proc.BasePriority, // Обычно безопасно
+                    WorkingSetBytes = proc.WorkingSet64,
+                    PrivateMemoryBytes = proc.PrivateMemorySize64,
+                    PeakWorkingSetBytes = proc.PeakWorkingSet64,
+                    VirtualMemoryBytes = proc.VirtualMemorySize64,
+                    PeakVirtualMemoryBytes = proc.PeakVirtualMemorySize64,
+                    PagedMemoryBytes = proc.PagedMemorySize64,
+                    NonpagedMemoryBytes = proc.NonpagedSystemMemorySize64,
+                    BasePriority = proc.BasePriority,
                 };
 
-                // БЕЗОПАСНОЕ заполнение опасных свойств
                 try { processModel.ProcessFileName = proc.MainModule?.FileName ?? "N/A"; }
-                catch { processModel.ProcessFileName = "Access Denied"; }
+                catch {
+                    Debug.WriteLine($"Не удалось получить путь к файлу процесса: {processModel.Name} (PID: {processModel.Id})");
+                    processModel.ProcessFileName = "нет доступа"; }
 
                 try { processModel.StartTime = proc.StartTime; }
-                catch { processModel.StartTime = DateTime.MinValue; }
+                catch {
+                    Debug.WriteLine($"Не удалось получить время запуска процесса: {processModel.Name} (PID: {processModel.Id})");
+                    processModel.StartTime = DateTime.MinValue; }
 
                 try { processModel.ThreadsCount = proc.Threads.Count; }
-                catch { processModel.ThreadsCount = 0; }
+                catch {
+                    Debug.WriteLine($"Не удалось получить количество потоков процесса: {processModel.Name} (PID: {processModel.Id})");
+                    processModel.ThreadsCount = 0; }
 
                 try { processModel.HandleCount = proc.HandleCount; }
-                catch { processModel.HandleCount = 0; }
+                catch {
+                    Debug.WriteLine($"Не удалось получить количество дескрипторов процесса: {processModel.Name} (PID: {processModel.Id})");
+                    processModel.HandleCount = 0; }
 
-                // Вычисляемые свойства
                 processModel.RunningTime = processModel.StartTime != DateTime.MinValue
                     ? DateTime.Now - processModel.StartTime
                     : TimeSpan.Zero;
 
-                // Дополнительные сервисы (тоже могут падать)
-                try { processModel.ProcessOwner = ProcessOwnerService.GetProcessOwner(processModel.Id); }
-                catch { processModel.ProcessOwner = "N/A"; }
+                try { processModel.ProcessOwner = ProcessOwnerService.GetProcessOwner((int)processModel.Id); }
+                catch {
+                    Debug.WriteLine($"Не удалось получить владельца процесса: {processModel.Name} (PID: {processModel.Id})");
+                    processModel.ProcessOwner = "нет доступа"; }
 
                 try { processModel.CertificateIssuer = ProcessSignatureService.GetSignatureIssuer(processModel.ProcessFileName); }
-                catch { processModel.CertificateIssuer = "N/A"; }
+                catch {
+                    Debug.WriteLine($"Не удалось получить издателя сертификата процесса: {processModel.Name} (PID: {processModel.Id})");
+                    processModel.CertificateIssuer = "нет доступа"; }
 
                 newProcessModelsList.Add(processModel);
             }
@@ -79,10 +87,13 @@ namespace RAM_Overview.Services
                     }
                     catch
                     {
+                        Debug.WriteLine($"Не удалось получить иконку процесса: {processModel.Name} (PID: {processModel.Id})");
                     }
 
                     ProcessModels.Add(processModel);
                 }
+
+                OnPropertyChanged(nameof(ProcessModels));
             });
         }
 
@@ -99,7 +110,7 @@ namespace RAM_Overview.Services
                 return $"{ownerInfo[1]}\\{ownerInfo[0]}"; // Domain\User
             }
 
-            return "N/A";
+            return "нет доступа";
         }
 
 

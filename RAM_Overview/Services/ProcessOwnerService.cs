@@ -110,28 +110,25 @@ namespace RAM_Overview.Services
 
             try
             {
-                // Получаем handle процесса
                 using var process = Process.GetProcessById(processId);
                 processHandle = process.Handle;
 
-                // Открываем токен процесса
                 if (!OpenProcessToken(processHandle, TOKEN_QUERY, out tokenHandle))
                 {
                     var error = Marshal.GetLastWin32Error();
                     return GetErrorMessage(error);
                 }
 
-                // Получаем информацию о пользователе из токена
                 return GetTokenUser(tokenHandle);
             }
             catch (ArgumentException ex) when (ex.Message.Contains("is not running"))
             {
-                return "Process not found";
+                return "процесс не найден";
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"Error getting process owner for PID {processId}: {ex.Message}");
-                return "N/A";
+                return "нет доступа";
             }
             finally
             {
@@ -159,7 +156,6 @@ namespace RAM_Overview.Services
 
             try
             {
-                // Получаем размер буфера
                 uint tokenInfoLength = 0;
                 GetTokenInformation(tokenHandle, TOKEN_INFORMATION_CLASS.TokenUser,
                     IntPtr.Zero, 0, out tokenInfoLength);
@@ -167,20 +163,16 @@ namespace RAM_Overview.Services
                 if (Marshal.GetLastWin32Error() != ERROR_INSUFFICIENT_BUFFER)
                     return "Failed to get token info size";
 
-                // Выделяем память
                 tokenInfo = Marshal.AllocHGlobal((int)tokenInfoLength);
 
-                // Получаем информацию о пользователе
                 if (!GetTokenInformation(tokenHandle, TOKEN_INFORMATION_CLASS.TokenUser,
                     tokenInfo, tokenInfoLength, out tokenInfoLength))
                 {
                     return "Failed to get token info";
                 }
 
-                // Преобразуем в структуру
                 var tokenUser = Marshal.PtrToStructure<TOKEN_USER>(tokenInfo);
 
-                // Преобразуем SID в имя пользователя
                 return ConvertSidToUserName(tokenUser.User.Sid);
             }
             finally
@@ -200,7 +192,6 @@ namespace RAM_Overview.Services
             }
             catch (IdentityNotMappedException)
             {
-                // Если SID не может быть преобразован в имя, возвращаем SID
                 try
                 {
                     var sid = new SecurityIdentifier(sidPtr);
@@ -222,10 +213,10 @@ namespace RAM_Overview.Services
         {
             return errorCode switch
             {
-                5 => "Access denied", // ERROR_ACCESS_DENIED
-                87 => "Invalid parameter", // ERROR_INVALID_PARAMETER
-                1008 => "Process has exited", // ERROR_NO_TOKEN
-                _ => $"Error code: {errorCode}"
+                5 => "нет доступа", // ERROR_ACCESS_DENIED
+                87 => "некорректный параметр", // ERROR_INVALID_PARAMETER
+                1008 => "процесс завершен", // ERROR_NO_TOKEN
+                _ => $"код ошибки: {errorCode}"
             };
         }
 

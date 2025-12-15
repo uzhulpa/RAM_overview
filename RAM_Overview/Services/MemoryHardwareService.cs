@@ -1,8 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using RAM_Overview.Models;
-using System.Diagnostics;
 using System.Management;
-using System.Runtime.InteropServices;
 
 namespace RAM_Overview.Services
 {
@@ -21,313 +19,169 @@ namespace RAM_Overview.Services
         {
             try
             {
-                // Пробуем разные методы по порядку
-                if (TryGetMemoryInfoFromSMBIOS())
-                    return;
+                using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemory");
+                using var modules = searcher.Get();
 
-                if (TryGetMemoryInfoFromWMI())
-                    return;
+                foreach (ManagementObject module in modules)
+                {
+                    try
+                    {
+                        var moduleInfo = new MemoryModuleInfo
+                        {
+                            CapacityBytes = Convert.ToUInt64(module["Capacity"]),
+                            SpeedMHz = Convert.ToUInt32(module["ConfiguredClockSpeed"] ?? module["Speed"] ?? 0),
+                            Manufacturer = module["Manufacturer"]?.ToString() != "Unknown" ? module["Manufacturer"]?.ToString() : "нет данных",
+                            SerialNumber = module["SerialNumber"]?.ToString() ?? "нет данных",
+                            MemoryType = GetMemoryTypeSMBIOS(module["SMBIOSMemoryType"]?.ToString()),
+                            FormFactor = GetFormFactor(module["FormFactor"]?.ToString()),
+                        };
+                        MemoryInfo.Modules.Add(moduleInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Ошибка обработки модуля памяти: {ex.Message}");
+                        continue;
+                    }
+                }
 
-                if (TryGetMemoryInfoFromRegistry())
-                    return;
+                MemoryInfo.SlotsUsed = (uint)MemoryInfo.Modules.Count;
+                MemoryInfo.TotalPhysicalMemoryBytes = (ulong)MemoryInfo.Modules.Sum(m => (long)m.CapacityBytes);
 
-                SetDefaultValues();
+                using var memoryArray = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemoryArray");
+                foreach (ManagementObject array in memoryArray.Get())
+                {
+                    MemoryInfo.TotalSlots += Convert.ToUInt32(array["MemoryDevices"]);
+                }
+
+                MemoryInfo.HardwareReservedBytes = GetHardwareReservedMemory(MemoryInfo);
+
+                if (MemoryInfo.Modules.Any())
+                {
+                    MemoryInfo.SpeedMTPS = (uint)MemoryInfo.Modules.Average(m => m.SpeedMHz);
+                    MemoryInfo.MemoryType = MemoryInfo.Modules.First().MemoryType;
+                    MemoryInfo.FormFactor = MemoryInfo.Modules.First().FormFactor;
+                    if (MemoryInfo.MemoryType.Contains("LPDDR")) MemoryInfo.FormFactor = "ряд микросхем";
+                    MemoryInfo.SerialNumber = MemoryInfo.Modules.First().SerialNumber;
+                    MemoryInfo.Manufacturer = string.Join(", ", MemoryInfo.Modules.Select(m => m.Manufacturer).Distinct());
+                }
+
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Error loading memory hardware info: {ex.Message}");
-                SetDefaultValues();
+                Console.WriteLine($"Ошибка получения данных памяти: {ex.Message}");
             }
         }
 
-        // Способ 1: Через SMBIOS (более низкоуровневый)
-        private bool TryGetMemoryInfoFromSMBIOS()
+        private string GetMemoryTypeSMBIOS(string memoryTypeCode)
         {
-            try
+            if (string.IsNullOrEmpty(memoryTypeCode)) return "Unknown";
+            if (!int.TryParse(memoryTypeCode, out int typeCode)) return "Invalid format";
+
+            return typeCode switch
             {
-                using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemory");
-                using var results = searcher.Get();
+                // Стандартные типы памяти
+                0x01 => "Other",
+                0x02 => "неизвестно",
+                0x03 => "DRAM",
+                0x04 => "EDRAM",
+                0x05 => "VRAM",
+                0x06 => "SRAM",
+                0x07 => "RAM",
+                0x08 => "ROM",
+                0x09 => "FLASH",
+                0x0A => "EEPROM",
+                0x0B => "FEPROM",
+                0x0C => "EPROM",
+                0x0D => "CDRAM",
+                0x0E => "3DRAM",
+                0x0F => "SDRAM",
+                0x10 => "SGRAM",
+                0x11 => "RDRAM",
+                0x12 => "DDR",
+                0x13 => "DDR2",
+                0x14 => "DDR2 FB-DIMM",
+                0x15 => "Reserved",
+                0x16 => "Reserved",
+                0x17 => "Reserved",
+                0x18 => "DDR3",
+                0x19 => "FBD2",
+                0x1A => "DDR4",
+                0x1B => "LPDDR",
+                0x1C => "LPDDR2",
+                0x1D => "LPDDR3",
+                0x1E => "LPDDR4",
 
-                if (results.Count == 0)
-                    return false;
+                0x1F => "Logical non-volatile device",
+                0x20 => "HBM",
+                0x21 => "HBM2",
+                0x22 => "DDR5",
+                0x23 => "LPDDR5",
+                0x24 => "HBM3",
 
-                long totalCapacity = 0;
-                int moduleCount = 0;
-                bool firstModuleProcessed = false;
+                0x25 => "DDR5 NVDIMM-P",
+                0x26 => "LPDDR5X",
 
-                foreach (ManagementObject memory in results)
-                {
-                    if (!firstModuleProcessed)
-                    {
-                        MemoryInfo.MemoryType = GetMemoryType((ushort)memory["MemoryType"]);
-                        MemoryInfo.Speed = (ushort)memory["Speed"];
-                        MemoryInfo.FormFactor = GetFormFactor((ushort)memory["FormFactor"]);
-                        MemoryInfo.Manufacturer = GetManufacturerName(memory["Manufacturer"]?.ToString());
-                        MemoryInfo.Timings = GetActualTimings(memory);
-                        firstModuleProcessed = true;
-                    }
+                0xFE => "Controller-specific",
+                0xFF => "Manufacturer-specific",
 
-                    totalCapacity += (long)(ulong)memory["Capacity"];
-                    moduleCount++;
-                }
-
-                MemoryInfo.TotalPhysicalMemory = totalCapacity;
-                UpdateSlotInfo(moduleCount);
-                MemoryInfo.HardwareReserved = GetActualHardwareReserved();
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        // Способ 2: Через WMI (более надежный для некоторых систем)
-        private bool TryGetMemoryInfoFromWMI()
-        {
-            try
-            {
-                using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_ComputerSystem");
-                using var results = searcher.Get();
-
-                foreach (ManagementObject cs in results)
-                {
-                    MemoryInfo.TotalPhysicalMemory = (long)(ulong)cs["TotalPhysicalMemory"];
-                    break;
-                }
-
-                // Получаем информацию о слотах
-                using var memorySearcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemoryArray");
-                using var memoryResults = memorySearcher.Get();
-
-                foreach (ManagementObject array in memoryResults)
-                {
-                    MemoryInfo.SlotsTotal = Convert.ToInt32(array["MemoryDevices"]);
-                    break;
-                }
-
-                // Считаем использованные слоты
-                using var physicalMemorySearcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemory");
-                using var physicalMemoryResults = physicalMemorySearcher.Get();
-                MemoryInfo.SlotsUsed = physicalMemoryResults.Count;
-
-                // Базовые значения по умолчанию
-                MemoryInfo.HardwareReserved = GetActualHardwareReserved();
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        // Способ 3: Через реестр (запасной вариант)
-        private bool TryGetMemoryInfoFromRegistry()
-        {
-            try
-            {
-                using var key = Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"HARDWARE\DESCRIPTION\System\CentralProcessor\0");
-                if (key != null)
-                {
-                    // Можно получить некоторую информацию о системе, но о памяти мало данных
-                    MemoryInfo.TotalPhysicalMemory = GetTotalMemoryFromGlobalMemoryStatus();
-                    MemoryInfo.SlotsTotal = 4; // По умолчанию
-                    MemoryInfo.SlotsUsed = 2;  // По умолчанию
-                    MemoryInfo.MemoryType = "DDR4";
-                    MemoryInfo.Speed = 3200;
-                    MemoryInfo.Timings = "16-18-18-36";
-                    MemoryInfo.FormFactor = "DIMM";
-                    MemoryInfo.Manufacturer = "Unknown";
-                    MemoryInfo.HardwareReserved = GetActualHardwareReserved();
-
-                    return true;
-                }
-                return false;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        // Получение общего объема памяти через WinAPI
-        [StructLayout(LayoutKind.Sequential)]
-        private struct MEMORYSTATUSEX
-        {
-            public uint dwLength;
-            public uint dwMemoryLoad;
-            public ulong ullTotalPhys;
-            public ulong ullAvailPhys;
-            public ulong ullTotalPageFile;
-            public ulong ullAvailPageFile;
-            public ulong ullTotalVirtual;
-            public ulong ullAvailVirtual;
-            public ulong ullAvailExtendedVirtual;
-        }
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool GlobalMemoryStatusEx(ref MEMORYSTATUSEX lpBuffer);
-
-        private long GetTotalMemoryFromGlobalMemoryStatus()
-        {
-            try
-            {
-                var memoryStatus = new MEMORYSTATUSEX();
-                memoryStatus.dwLength = (uint)Marshal.SizeOf(typeof(MEMORYSTATUSEX));
-
-                if (GlobalMemoryStatusEx(ref memoryStatus))
-                {
-                    return (long)memoryStatus.ullTotalPhys;
-                }
-            }
-            catch
-            {
-                // Ignore
-            }
-
-            return 8L * 1024 * 1024 * 1024; // 8 GB по умолчанию
-        }
-
-        // Более точное определение зарезервированной памяти
-        private long GetActualHardwareReserved()
-        {
-            try
-            {
-                // Пытаемся получить реальное значение через WMI
-                using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
-                using var results = searcher.Get();
-
-                foreach (ManagementObject os in results)
-                {
-                    var totalVisibleMemory = (ulong)os["TotalVisibleMemorySize"] * 1024; // в байтах
-                    var totalPhysicalMemory = (ulong)MemoryInfo.TotalPhysicalMemory; // явное преобразование в ulong
-
-                    if (totalPhysicalMemory > totalVisibleMemory)
-                    {
-                        return (long)(totalPhysicalMemory - totalVisibleMemory);
-                    }
-                    break;
-                }
-            }
-            catch
-            {
-                // Ignore
-            }
-
-            return 256 * 1024 * 1024; // 256 MB по умолчанию
-        }
-
-        // Получение реальных таймингов
-        private string GetActualTimings(ManagementObject memory)
-        {
-            try
-            {
-                // Пытаемся получить реальные тайминги
-                var configuredTimings = memory["ConfiguredMemoryTimings"]?.ToString();
-                if (!string.IsNullOrEmpty(configuredTimings) && configuredTimings != "0")
-                    return configuredTimings;
-
-                // Альтернативные поля с таймингами
-                var casLatency = memory["ConfiguredClockSpeed"]?.ToString();
-                if (!string.IsNullOrEmpty(casLatency))
-                    return $"{casLatency}-?-?-?";
-            }
-            catch
-            {
-                // Ignore
-            }
-
-            // Fallback к значениям по типу памяти
-            return MemoryInfo.MemoryType switch
-            {
-                "DDR5" => "40-40-40-77",
-                "DDR4" => "16-18-18-36",
-                "DDR3" => "9-9-9-24",
-                "DDR2" => "5-5-5-15",
-                "DDR" => "2.5-3-3-7",
-                _ => "Unknown"
+                _ when typeCode >= 0x27 && typeCode <= 0xFD => $"зарезервировано (0x{typeCode:X2})",
+                _ => $"неизвестно (0x{typeCode:X2})"
             };
         }
 
-        // Нормализация имени производителя
-        private string GetManufacturerName(string manufacturer)
+        private string GetFormFactor(string formFactorCode)
         {
-            if (string.IsNullOrEmpty(manufacturer) || manufacturer == "Unknown")
-                return "Unknown";
+            if (string.IsNullOrEmpty(formFactorCode)) return "неизвестно";
+            if (!int.TryParse(formFactorCode, out int typeCode)) return "некорректный формат";
 
-            return manufacturer.ToUpper() switch
+            return typeCode switch
             {
-                "SAMSUNG" => "Samsung",
-                "MICRON" or "MICRON TECHNOLOGY" => "Micron",
-                "SK HYNIX" or "HYNIX SEMICONDUCTOR" => "SK Hynix",
-                "CORSAIR" => "Corsair",
-                "KINGSTON" => "Kingston",
-                "CRUCIAL" => "Crucial",
-                "G.SKILL" => "G.Skill",
-                "PATRIOT" => "Patriot",
-                "TEAM GROUP" => "Team Group",
-                "ADATA" => "ADATA",
-                "GEIL" => "GeIL",
-                "APACER" => "Apacer",
-                "TRANSCEND" => "Transcend",
-                _ => manufacturer
+                0 => "неизвестно",
+                1 => "Other",
+                2 => "SIP",
+                3 => "DIP",
+                4 => "ZIP",
+                5 => "SOJ",
+                6 => "Proprietary",
+                7 => "SIMM",
+                8 => "DIMM",
+                9 => "TSOP",
+                10 => "PGA",
+                11 => "RIMM",
+                12 => "SODIMM",
+                13 => "SRIMM",
+                14 => "SMD",
+                15 => "SSMP",
+                16 => "QFP",
+                17 => "TQFP",
+                18 => "SOIC",
+                19 => "LCC",
+                20 => "PLCC",
+                21 => "BGA",
+                22 => "FPBGA",
+                23 => "LGA",
+                24 => "FB-DIMM",
+                _ => $"неизвестно ({typeCode})"
             };
         }
 
-        private void UpdateSlotInfo(int moduleCount)
+        private ulong GetHardwareReservedMemory(MemoryHardwareInfo info)
         {
             try
             {
-                using var arraySearcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemoryArray");
-                using var results = arraySearcher.Get();
-
-                foreach (ManagementObject array in results)
+                using var osSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
+                foreach (ManagementObject os in osSearcher.Get())
                 {
-                    MemoryInfo.SlotsTotal = Convert.ToInt32(array["MemoryDevices"]);
-                    break;
+                    ulong totalVisibleMemory = Convert.ToUInt64(os["TotalVisibleMemorySize"]) * 1024;
+                    if (info.TotalPhysicalMemoryBytes > totalVisibleMemory)
+                        return info.TotalPhysicalMemoryBytes - totalVisibleMemory;
                 }
-                MemoryInfo.SlotsUsed = moduleCount;
             }
             catch
             {
-                // Автоматическое определение по количеству модулей
-                MemoryInfo.SlotsTotal = Math.Max(moduleCount * 2, 4); // Минимум 4 слота
-                MemoryInfo.SlotsUsed = moduleCount;
+                return (ulong)(info.TotalPhysicalMemoryBytes * 0.05);
             }
+            return 0;
         }
-
-        private void SetDefaultValues()
-        {
-            MemoryInfo.MemoryType = "DDR4";
-            MemoryInfo.Speed = 3200;
-            MemoryInfo.Timings = "16-18-18-36";
-            MemoryInfo.SlotsTotal = 4;
-            MemoryInfo.SlotsUsed = 2;
-            MemoryInfo.FormFactor = "DIMM";
-            MemoryInfo.Manufacturer = "Unknown";
-            MemoryInfo.TotalPhysicalMemory = GetTotalMemoryFromGlobalMemoryStatus();
-            MemoryInfo.HardwareReserved = GetActualHardwareReserved();
-        }
-
-        private string GetMemoryType(ushort memoryType) => memoryType switch
-        {
-            20 => "DDR",
-            21 => "DDR2",
-            24 => "DDR3",
-            26 => "DDR4",
-            34 => "DDR5",
-            _ => "Unknown"
-        };
-
-        private string GetFormFactor(ushort formFactor) => formFactor switch
-        {
-            8 => "DIMM",
-            12 => "SODIMM",
-            13 => "RIMM",
-            14 => "CRIMM",
-            _ => "Unknown"
-        };
     }
 }

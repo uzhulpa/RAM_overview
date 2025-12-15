@@ -5,29 +5,93 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:RAM_Overview.Views"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
 
-    <Grid>
+    <UserControl.Resources>
+        <Style x:Key="ModernCardStyle" TargetType="Border">
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="#E1E5E9"/>
+            <Setter Property="Background" Value="#FFFFFF"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Margin" Value="0,0,8,8"/>
+            <Setter Property="Padding" Value="0"/>
+        </Style>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Foreground" Value="#1A1D21"/>
+            <Setter Property="Margin" Value="16,12,16,8"/>
+        </Style>
+
+        <Style x:Key="InfoGridStyle" TargetType="Grid">
+            <Setter Property="Margin" Value="16,8"/>
+        </Style>
+
+        <Style x:Key="DataTextStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Foreground" Value="#42474E"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,4"/>
+        </Style>
+
+        <Style x:Key="LabelTextStyle" TargetType="TextBlock" BasedOn="{StaticResource DataTextStyle}">
+            <Setter Property="Foreground" Value="#6B7280"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+        </Style>
+
+        <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="HeadersVisibility" Value="Column"/>
+            <Setter Property="AutoGenerateColumns" Value="False"/>
+            <Setter Property="IsReadOnly" Value="True"/>
+            <Setter Property="GridLinesVisibility" Value="None"/>
+            <Setter Property="Margin" Value="8"/>
+        </Style>
+
+        <Style x:Key="DataGridColumnHeaderStyle" TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#F8F9FA"/>
+            <Setter Property="Foreground" Value="#42474E"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="0,8"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+
+        <Style x:Key="DataGridCellStyle" TargetType="DataGridCell">
+            <Setter Property="Margin" Value="0,4,0,4"/>
+            <Setter Property="Padding" Value="0,4,0,4"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Background="#F8F9FA">
         <Grid.RowDefinitions>
             <RowDefinition Height="64"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- заголовок -->
-        <Grid Grid.Row="0">
+        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E1E5E9" BorderThickness="0,0,0,1">
             <TextBlock Text="Главная"
-                       VerticalAlignment="Center" HorizontalAlignment="Center"/>
-        </Grid>
+                       VerticalAlignment="Center"
+                       Margin="8,0,0,0"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Foreground="#1A1D21"/>
+        </Border>
 
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="8,8,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="4*"/>
                     <ColumnDefinition Width="3*"/>
                 </Grid.ColumnDefinitions>
 
-                <!-- левый блок -->
                 <Grid Grid.Column="0">
                     <Grid>
                         <Grid.RowDefinitions>
@@ -37,118 +101,181 @@
                             <RowDefinition Height="auto"/>
                         </Grid.RowDefinitions>
 
-                        <!-- шкала использования -->
-                        <Grid Grid.Row="0">
-                            <Border BorderThickness="1" BorderBrush="Black">
-                                <TextBlock Text="Шкала использования"/>
-                            </Border>
-                        </Grid>
+                        <Border Grid.Row="1" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Распределение оперативной памяти" Style="{StaticResource SectionHeaderStyle}"/>
+                                <Grid Style="{StaticResource InfoGridStyle}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.6*"/>
+                                        <ColumnDefinition Width="0.5*"/>
+                                        <ColumnDefinition Width="0.5*"/>
+                                        <ColumnDefinition Width="0.4*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="32"/>
+                                        <RowDefinition Height="32"/>
+                                        <RowDefinition Height="32"/>
+                                    </Grid.RowDefinitions>
 
-                        <!-- инфа распределение -->
-                        <Grid Grid.Row="1">
-                            <Border BorderThickness="1" BorderBrush="Black">
-                                <StackPanel Orientation="Vertical">
-                                    <TextBlock Text="Распределение оперативной памяти"/>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-                                            <ColumnDefinition/>
-                                            <ColumnDefinition/>
-                                        </Grid.ColumnDefinitions>
+                                    <!--<TextBlock Grid.Column="0" Grid.Row="0" Text="Используется (сжатая)" Style="{StaticResource LabelTextStyle}"/>-->
+                                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Используется" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Выгружаемый пул" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Невыгружаемый пул" Style="{StaticResource LabelTextStyle}"/>
 
-                                        <Grid Grid.Column="0">
-                                            <StackPanel Orientation="Vertical">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="Используется"/>
-                                                    <TextBlock Text="{Binding MemoryAllocationInfo.UsedMemoryGB}"/>
-                                                </StackPanel>
-                                                <Border Padding="10,0,0,0">
-                                                    <StackPanel Orientation="Vertical">
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="сжатая"/>
-                                                            <TextBlock Text="{Binding MemoryAllocationInfo.CompressedMemoryMB}"/>
-                                                        </StackPanel>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="выгружаемый пул"/>
-                                                            <TextBlock Text="{Binding MemoryAllocationInfo.PagedPoolMB}"/>
-                                                        </StackPanel>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <TextBlock Text="невыгружаемый пул"/>
-                                                            <TextBlock Text="{Binding MemoryAllocationInfo.NonPagedPoolMB}"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-                                                </Border>
-                                            </StackPanel>
-                                        </Grid>
-                                        <Grid Grid.Column="1">
-                                            <StackPanel Orientation="Vertical">
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="Доступно"/>
-                                                    <TextBlock Text="{Binding MemoryAllocationInfo.AvailableMemoryGB}"/>
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="Выделено"/>
-                                                    <StackPanel Orientation="Horizontal">
-                                                        <TextBlock Text="{Binding MemoryAllocationInfo.CommittedMemoryGB}"/>
-                                                        <TextBlock Text="{Binding MemoryAllocationInfo.CommitLimitGB, StringFormat='/{0}'}"/>
-                                                    </StackPanel>
-                                                </StackPanel>
-                                                <StackPanel Orientation="Horizontal">
-                                                    <TextBlock Text="Кэшировано"/>
-                                                    <TextBlock Text="{Binding MemoryAllocationInfo.CachedMemoryGB}"/>
-                                                </StackPanel>
-                                            </StackPanel>
-                                        </Grid>
-                                    </Grid>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding MemoryAllocationInfo.UsedMemoryString}" Style="{StaticResource DataTextStyle}"/>
+                                        <!--<TextBlock Text="{Binding MemoryAllocationInfo.CompressedMemoryString, StringFormat=' ({0})'}" Style="{StaticResource DataTextStyle}"/>-->
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding MemoryAllocationInfo.PagedPoolString}" Style="{StaticResource DataTextStyle}"/>
+                                    <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding MemoryAllocationInfo.NonPagedPoolString}" Style="{StaticResource DataTextStyle}"/>
 
-                        <!-- график -->
-                        <Grid Grid.Row="2">
-                            <Border BorderThickness="1" BorderBrush="Black">
-                                <TextBlock Text="График"/>
-                            </Border>
-                        </Grid>
+                                    <TextBlock Grid.Column="2" Grid.Row="0" Text="Доступно" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="2" Grid.Row="1" Text="Выделено" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="2" Grid.Row="2" Text="Кэшировано" Style="{StaticResource LabelTextStyle}"/>
 
-                        <!-- аппаратная инфа -->
-                        <Grid Grid.Row="3">
-                            <Border BorderThickness="1" BorderBrush="Black">
-                                <StackPanel Orientation="Vertical">
-                                    <TextBlock Text="Аппаратная информация"/>
-                                    <TextBlock Text="{Binding MemoryHardwareInfo.Speed}"/>
-                                    <TextBlock Text="{Binding MemoryHardwareInfo.SlotsInfo}"/>
-                                    <TextBlock Text="{Binding MemoryHardwareInfo.FormFactor}"/>
-                                    <TextBlock Text="{Binding MemoryHardwareInfo.HardwareReservedMB}"/>
-                                    <TextBlock Text="{Binding MemoryHardwareInfo.MemoryType}"/>
-                                    <TextBlock Text="{Binding MemoryHardwareInfo.Timings}"/>
-                                    <TextBlock Text="{Binding MemoryHardwareInfo.Manufacturer}"/>
-                                </StackPanel>
-                            </Border>
-                        </Grid>
+                                    <TextBlock Grid.Column="3" Grid.Row="0" Text="{Binding MemoryAllocationInfo.AvailableMemoryString}" Style="{StaticResource DataTextStyle}"/>
+                                    <StackPanel Grid.Column="3" Grid.Row="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                        <TextBlock Text="{Binding MemoryAllocationInfo.CommittedMemoryString}" Style="{StaticResource DataTextStyle}"/>
+                                        <TextBlock Text="{Binding MemoryAllocationInfo.CommitLimitString, StringFormat='/{0}'}" Style="{StaticResource DataTextStyle}"/>
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="3" Grid.Row="2" Text="{Binding MemoryAllocationInfo.CachedMemoryString}" Style="{StaticResource DataTextStyle}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- график использования -->
+                        <Border Grid.Row="2" Style="{StaticResource ModernCardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" 
+                                           Text="Использование оперативной памяти (ГБ) за последние 60 секунд" 
+                                           Style="{StaticResource SectionHeaderStyle}"/>
+
+                                <lvc:CartesianChart Grid.Row="1"
+                                           Series="{Binding MemoryUsageSeries}"
+                                           XAxes="{Binding XAxes}"
+                                           YAxes="{Binding YAxes}"
+                                           AnimationsSpeed="00:00:00.050"
+                                           Margin="16,8,16,16"
+                                           Background="Transparent">
+                                </lvc:CartesianChart>
+                            </Grid>
+                        </Border>
+
+                        <!-- апапартная информация -->
+                        <Border Grid.Row="3" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Аппаратная информация" Style="{StaticResource SectionHeaderStyle}"/>
+                                <Grid Style="{StaticResource InfoGridStyle}">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="0.5*"/>
+                                        <ColumnDefinition Width="0.2*"/>
+                                        <ColumnDefinition Width="0.3*"/>
+                                        <ColumnDefinition Width="0.3*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="32"/>
+                                        <RowDefinition Height="32"/>
+                                        <RowDefinition Height="32"/>
+                                        <RowDefinition Height="32"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Column="0" Grid.Row="0" Text="Скорость" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="0" Grid.Row="1" Text="Использовано гнезд" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="0" Grid.Row="2" Text="Тип памяти" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="0" Grid.Row="3" Text="Зарезервировано аппаратно" Style="{StaticResource LabelTextStyle}"/>
+
+                                    <TextBlock Grid.Column="1" Grid.Row="0" Text="{Binding MemoryHardwareInfo.SpeedMTPSString}" Style="{StaticResource DataTextStyle}"/>
+                                    <TextBlock Grid.Column="1" Grid.Row="1" Text="{Binding MemoryHardwareInfo.SlotsUsedString}" Style="{StaticResource DataTextStyle}"/>
+                                    <TextBlock Grid.Column="1" Grid.Row="2" Text="{Binding MemoryHardwareInfo.MemoryType}" Style="{StaticResource DataTextStyle}"/>
+                                    <TextBlock Grid.Column="1" Grid.Row="3" Text="{Binding MemoryHardwareInfo.HardwareReservedString}" Style="{StaticResource DataTextStyle}"/>
+
+                                    <TextBlock Grid.Column="2" Grid.Row="0" Text="Производитель" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="2" Grid.Row="1" Text="Форм-фактор" Style="{StaticResource LabelTextStyle}"/>
+                                    <TextBlock Grid.Column="2" Grid.Row="2" Text="Серийный номер" Style="{StaticResource LabelTextStyle}"/>
+
+                                    <TextBlock Grid.Column="3" Grid.Row="0" Text="{Binding MemoryHardwareInfo.Manufacturer}" Style="{StaticResource DataTextStyle}"/>
+                                    <TextBlock Grid.Column="3" Grid.Row="1" Text="{Binding MemoryHardwareInfo.FormFactor}" Style="{StaticResource DataTextStyle}"/>
+                                    <TextBlock Grid.Column="3" Grid.Row="2" Text="{Binding MemoryHardwareInfo.SerialNumber}" Style="{StaticResource DataTextStyle}"/>
+                                </Grid>
+                            </StackPanel>
+                        </Border>
                     </Grid>
                 </Grid>
-                
+
                 <!-- правый блок -->
                 <Grid Grid.Column="1">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="3*"/>
-                            <RowDefinition Height="2*"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
 
-                        <!-- диаграмма -->
-                        <Grid Grid.Row="0">
-                            <Border BorderThickness="1" BorderBrush="Black">
-                                <TextBlock Text="Диаграмма"/>
-                            </Border>
-                        </Grid>
+                        <!-- график топ-5 -->
+                        <Border Grid.Row="0" Style="{StaticResource ModernCardStyle}">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
 
-                        <!-- процессы в диаграмме -->
-                        <Grid Grid.Row="1">
-                            <Border BorderThickness="1" BorderBrush="Black">
-                                <TextBlock Text="Процессы в диаграмме"/>
-                            </Border>
-                        </Grid>
+                                <TextBlock Grid.Row="0" 
+                                           Text="Топ-5 процессов по памяти" 
+                                           Style="{StaticResource SectionHeaderStyle}"/>
+
+                                <lvc:PieChart Grid.Row="1"
+                                              Series="{Binding ProcessMemorySeries}"
+                                              LegendPosition="Hidden"
+                                              InitialRotation="-90"
+                                              Margin="16,8,16,16"
+                                              Background="White"
+                                              AnimationsSpeed="0">
+                                </lvc:PieChart>
+                            </Grid>
+                        </Border>
+
+                        <!-- топ-5 процессы -->
+                        <Border Grid.Row="1" Style="{StaticResource ModernCardStyle}">
+                            <StackPanel Orientation="Vertical">
+                                <TextBlock Text="Топ-5 процессов по памяти" Style="{StaticResource SectionHeaderStyle}"/>
+                                <DataGrid ItemsSource="{Binding TopProcesses}"
+                                          Style="{StaticResource ModernDataGridStyle}"
+                                          ColumnHeaderStyle="{StaticResource DataGridColumnHeaderStyle}"
+                                          CellStyle="{StaticResource DataGridCellStyle}">
+                                    <DataGrid.Columns>
+                                        <DataGridTemplateColumn Width="32">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Image Source="{Binding Icon}"
+                                                           Width="16" Height="16"
+                                                           ToolTip="{Binding Name}"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTemplateColumn Width="36">
+                                            <DataGridTemplateColumn.CellTemplate>
+                                                <DataTemplate>
+                                                    <Ellipse Width="12"
+                                                             Height="12"
+                                                             Fill="{Binding ChartColor}"
+                                                             Stroke="#1A000000"
+                                                             StrokeThickness="1"
+                                                             HorizontalAlignment="Center"
+                                                             ToolTip="{Binding Name}"/>
+                                                </DataTemplate>
+                                            </DataGridTemplateColumn.CellTemplate>
+                                        </DataGridTemplateColumn>
+                                        <DataGridTextColumn Header="ID" Binding="{Binding Id}" Width="60"/>
+                                        <DataGridTextColumn Header="Имя" Binding="{Binding Name}" Width="*" MaxWidth="240"/>
+                                        <DataGridTextColumn Header="Рабочий набор" Binding="{Binding WorkingSetString}" Width="120"/>
+                                    </DataGrid.Columns>
+                                </DataGrid>
+                            </StackPanel>
+                        </Border>
                     </Grid>
                 </Grid>
             </Grid>

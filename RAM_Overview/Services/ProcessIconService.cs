@@ -41,7 +41,6 @@ namespace RAM_Overview.Services
             }
             catch
             {
-                // В случае ошибки возвращаем иконку по умолчанию
             }
 
             return GetDefaultIcon();
@@ -62,14 +61,12 @@ namespace RAM_Overview.Services
             }
             catch
             {
-                // Обработка ошибок
             }
             return GetDefaultIcon();
         }
 
         private static ImageSource GetDefaultIcon()
         {
-            // Возвращаем стандартную иконку приложения
             var icon = SystemIcons.Application;
             return Imaging.CreateBitmapSourceFromHIcon(
                 icon.Handle,

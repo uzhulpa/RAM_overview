@@ -3,7 +3,6 @@ using RAM_Overview.Models;
 using System.Diagnostics;
 using System.Management;
 using System.Windows;
-using System.Windows.Controls;
 
 namespace RAM_Overview.Services
 {
@@ -26,7 +25,7 @@ namespace RAM_Overview.Services
 
         public MemoryAllocationInfoService()
         {
-            // Инициализация Performance Counters
+            // инициализация Performance Counters
             _availableBytesCounter = new PerformanceCounter("Memory", "Available Bytes");
             _committedBytesCounter = new PerformanceCounter("Memory", "Committed Bytes");
             _pagedPoolBytesCounter = new PerformanceCounter("Memory", "Pool Paged Bytes");
@@ -39,10 +38,8 @@ namespace RAM_Overview.Services
             _cacheBytesCounter4 = new PerformanceCounter("Memory", "Standby Cache Normal Priority Bytes");
             _cacheBytesCounter5 = new PerformanceCounter("Memory", "Standby Cache Core Bytes");
 
-            // Запуск таймера обновления (каждые 2 секунды)
-            _timer = new Timer(UpdateMemoryInfo, null, TimeSpan.Zero, TimeSpan.FromSeconds(2.5));
+            _timer = new Timer(UpdateMemoryInfo, null, TimeSpan.Zero, TimeSpan.FromSeconds(1.5));
 
-            // Первоначальная загрузка данных
             UpdateMemoryInfo(null);
         }
 
@@ -55,19 +52,14 @@ namespace RAM_Overview.Services
                     LastUpdateTime = DateTime.Now
                 };
 
-                // Получение базовой информации через GlobalMemoryStatusEx
                 GetBasicMemoryInfo(newMemoryInfo);
 
-                // Получение дополнительной информации через Performance Counters
                 GetPerformanceCounterInfo(newMemoryInfo);
 
-                // Получение информации через WMI
                 GetWmiMemoryInfo(newMemoryInfo);
 
-                // Расчет производных значений
                 CalculateDerivedValues(newMemoryInfo);
 
-                // Обновление в UI потоке
                 Application.Current?.Dispatcher.Invoke((Action)(() =>
                 {
                     MemoryAllocationInfo = newMemoryInfo;
@@ -83,7 +75,6 @@ namespace RAM_Overview.Services
 
         private void GetBasicMemoryInfo(MemoryAllocationInfo memoryInfo)
         {
-            // Используем GlobalMemoryStatusEx через P/Invoke или WMI
             using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
             foreach (ManagementObject obj in searcher.Get())
             {
@@ -114,12 +105,9 @@ namespace RAM_Overview.Services
         {
             try
             {
-                // Получение информации о сжатой памяти (Windows 10+)
                 using var memSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
                 foreach (ManagementObject obj in memSearcher.Get())
                 {
-                    // Для сжатой памяти может потребоваться дополнительная логика
-                    // В некоторых системах это доступно через другие счетчики
                     memoryInfo.CompressedMemoryBytes = CalculateCompressedMemory();
                     break;
                 }
@@ -132,30 +120,41 @@ namespace RAM_Overview.Services
 
         private void CalculateDerivedValues(MemoryAllocationInfo memoryInfo)
         {
-            // Используемая память = Общая - Доступная
             memoryInfo.UsedMemoryBytes = memoryInfo.TotalPhysicalMemoryBytes - memoryInfo.AvailableMemoryBytes;
 
-            // Если сжатая память не определена, используем приблизительное значение
-            if (memoryInfo.CompressedMemoryBytes == 0)
-            {
-                memoryInfo.CompressedMemoryBytes = (ulong)(memoryInfo.UsedMemoryBytes * 0.05); // ~5%
-            }
+            //if (memoryInfo.CompressedMemoryBytes == 0)
+            //{
+            //    memoryInfo.CompressedMemoryBytes = (ulong)(memoryInfo.UsedMemoryBytes * 0.05); // ~5%
+            //}
         }
 
         private ulong CalculateCompressedMemory()
         {
-            // Сложная логика определения сжатой памяти
-            // Может потребовать P/Invoke вызовов или использования дополнительных счетчиков
             try
             {
-                // Временная реализация - можно улучшить
-                using var counter = new PerformanceCounter("Memory", "Pool Paged Resident Bytes");
-                return (ulong)counter.NextValue();
+                using var compressedCounter = new PerformanceCounter("Memory", "Compressed Bytes");
+                return (ulong)compressedCounter.NextValue();
             }
             catch
             {
-                return 0;
+                try
+                {
+                    using var searcher = new ManagementObjectSearcher("SELECT * FROM Win32_OperatingSystem");
+                    foreach (ManagementObject obj in searcher.Get())
+                    {
+                        if (obj["Compressed"] != null)
+                        {
+                            return Convert.ToUInt64(obj["Compressed"]) * 1024;
+                        }
+                        break;
+                    }
+                }
+                catch
+                {
+                    return 0;
+                }
             }
+            return 0;
         }
 
         public void Dispose()
